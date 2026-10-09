@@ -12,7 +12,7 @@
     "data:fetch": "node scripts/fetch-data.js",
     "data:build": "node scripts/build-stars.js && node scripts/build-planets.js",
     "data:verify": "node scripts/verify-stars.js",
-    "test": "node --test tests/"
+    "test": "node --test \"tests/**/*.test.js\""
   },
   "engines": {
     "node": ">=20.19"
