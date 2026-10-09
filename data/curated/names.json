@@ -1,0 +1,49 @@
+{
+  "_about": "Display-name preferences for nearby stars. HYG's 'proper' field now carries many IAU names given in 2015–2022 (Ran, Copernicus, Errai…) that most players won't recognise, so the traditional designation is shown instead and the IAU name stays searchable. 'byProper' maps an HYG proper name to the display name; 'byGliese' names stars that have no proper name in HYG, keyed by normalised Gliese designation (see scripts/lib/names.js glKey); 'aliases' adds extra search terms.",
+  "byProper": {
+    "Rigil Kentaurus": "Alpha Centauri A",
+    "Toliman": "Alpha Centauri B",
+    "Ran": "Epsilon Eridani",
+    "Keid": "40 Eridani A",
+    "Copernicus": "55 Cancri A",
+    "Titawin": "Upsilon Andromedae",
+    "Errai": "Gamma Cephei A",
+    "Chalawan": "47 Ursae Majoris",
+    "Noquisi": "Gliese 436",
+    "Gar": "Gliese 486",
+    "Onkaria": "GJ 1214",
+    "Añañuca": "Gliese 367",
+    "Achird": "Eta Cassiopeiae A",
+    "Guniibuu": "36 Ophiuchi A",
+    "Guniibuu B": "36 Ophiuchi B",
+    "Hoerikwaggo": "Alpha Mensae",
+    "Tianji": "Zeta Herculis A",
+    "Quadrans": "44 Boötis A",
+    "Deltoton": "Delta Trianguli",
+    "Rana": "Delta Eridani",
+    "Dalim": "Alpha Fornacis A",
+    "Talitha": "Iota Ursae Majoris A",
+    "Alsafi": "Sigma Draconis",
+    "Alshain": "Beta Aquilae",
+    "EZ Aqr": "EZ Aquarii A"
+  },
+  "byGliese": {
+    "65A": "Luyten 726-8 A",
+    "65B": "Luyten 726-8 B",
+    "380": "Groombridge 1618",
+    "388": "AD Leonis",
+    "54.1": "YZ Ceti",
+    "1111": "DX Cancri",
+    "169.1A": "Stein 2051 A",
+    "169.1B": "Stein 2051 B",
+    "752A": "Wolf 1055",
+    "752B": "Van Biesbroeck's Star"
+  },
+  "aliases": {
+    "559A": ["Alpha Centauri"],
+    "559B": ["Alpha Centauri"],
+    "65A": ["BL Ceti"],
+    "65B": ["UV Ceti"],
+    "752B": ["VB 10"]
+  }
+}

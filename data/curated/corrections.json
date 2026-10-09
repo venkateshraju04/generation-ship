@@ -1,0 +1,17 @@
+{
+  "_about": "Fixes for known errors or gaps in the source catalogues, keyed by HYG id. Each entry replaces only the fields it lists; 'why' records the reason.",
+  "stars": {
+    "24549": {
+      "spect": "K0III",
+      "why": "HYG v4.4 lists Capella's primary as 'M1: comp'. Capella Aa is a K0 III giant."
+    },
+    "118493": {
+      "teff": 7740,
+      "why": "Procyon B: HYG's type 'DA' has no temperature index. 7,740 K is the commonly cited value."
+    },
+    "118281": {
+      "teff": 16500,
+      "why": "40 Eridani B: HYG gives DA4 (~12,600 K); modern spectroscopy puts it near 16,500 K."
+    }
+  }
+}
