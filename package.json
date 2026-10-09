@@ -1,0 +1,27 @@
+{
+  "name": "generation-ship",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A contemplative 3D exploration game of the real stars within 50 light-years of the Sun.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "data": "npm run data:fetch && npm run data:build && npm run data:verify",
+    "data:fetch": "node scripts/fetch-data.js",
+    "data:build": "node scripts/build-stars.js && node scripts/build-planets.js",
+    "data:verify": "node scripts/verify-stars.js",
+    "test": "node --test tests/"
+  },
+  "engines": {
+    "node": ">=20.19"
+  },
+  "dependencies": {
+    "@fontsource/inter": "5.3.0",
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "vite": "8.3.1"
+  }
+}
