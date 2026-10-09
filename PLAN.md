@@ -2,7 +2,7 @@
 
 A single-player 3D browser exploration game. The player captains a ship exploring the real stars within ~50 light-years of the Sun at relativistic speeds, so ship time and Earth time drift apart. The core feeling: wonder at real places, and the quiet cost of distance.
 
-**Status:** Phase 1 data pipeline is done and verified. The 3D starmap (rest of Phase 1) is next.
+**Status:** Phase 1 is done: data pipeline and 3D starmap. Phase 2 (voyage) is next.
 
 ---
 
@@ -10,8 +10,8 @@ A single-player 3D browser exploration game. The player captains a ship explorin
 
 | Phase | Part | Status |
 |---|---|---|
-| 1 | Data fetch, preprocessing, verification | **Done** — see [Phase 1 data: what was built](#phase-1-data-what-was-built) |
-| 1 | 3D starmap, selection, search, travel estimate | Not started — only the `src/sim/` helpers below are drafted |
+| 1 | Data fetch, preprocessing, verification | **Done** — see [Data](#data) |
+| 1 | 3D starmap, selection, search, travel estimate | **Done** — see [Phase 1 starmap: what was built](#phase-1-starmap-what-was-built) |
 | 2 | Voyage | Not started |
 | 3 | Story and finish | Not started |
 
@@ -40,7 +40,7 @@ Vanilla JS everywhere else.
 ```
 generation-ship/                      (git repo)
 ├── package.json  .npmrc  .gitignore  ✓
-├── index.html  vite.config.js  README.md
+├── index.html  vite.config.js  README.md  ✓
 ├── PLAN.md                           ✓
 ├── scripts/                          ✓ Node, no Python
 │   ├── fetch-data.js                 ✓ HYG + NASA Exoplanet Archive → data/raw/ (gitignored)
@@ -65,15 +65,65 @@ generation-ship/                      (git repo)
 │   ├── sky.json                      ✓ 8,687 naked-eye background stars (248 KB)
 │   └── planets.json                  ✓ 228 confirmed planets (63 KB)
 ├── src/
-│   ├── main.js
-│   ├── sim/        ✓ constants, ✓ relativity, ✓ catalog, ✓ store, ✓ game (drafted, untested);
+│   ├── main.js                       ✓ loads data, wires sim ↔ render ↔ UI
+│   ├── format.js                     ✓ shared display formatting (distances, durations, star types)
+│   ├── sim/        ✓ constants, relativity, catalog (lookups, systems, search), store, game;
 │   │               later: rng, physics, procgen, travel, scan, log, messages, save
 │   ├── content/    messages.js (~30 templates)
-│   ├── render/     renderer.js, color.js, coords.js, starmap/, system/, transit/, shaders/*.glsl
-│   ├── ui/         hud, panels, search, dialogs, styles.css
+│   ├── render/     ✓ renderer.js, color.js, coords.js
+│   │   ├── starmap/  ✓ starmap.js, starPoints.js, milkyWay.js, grid.js, markers.js, labels.js
+│   │   ├── shaders/  ✓ stars, milkyway, fade (depth lines)
+│   │   └── system/, transit/   (Phases 2–3)
+│   ├── ui/         ✓ index.js, hud.js, search.js, starPanel.js, footer.js, dom.js, styles.css
 │   └── audio/      ambient.js (Tone.js, loaded only when the player turns sound on)
-└── tests/          node --test: relativity math, procgen determinism, message timing
+└── tests/          ✓ relativity, catalog, color (14 tests); later: procgen determinism, message timing
 ```
+
+## Phase 1 starmap: what was built
+
+**Run:** `npm install`, then `npm run dev` and open http://localhost:5173. Controls and scripts are listed in [README.md](README.md).
+
+### Rendering
+- **Stars:** each star's size and opacity come from its apparent magnitude as seen from the camera, computed in the vertex shader. Brightness stays physically consistent wherever you fly, and approaching a star makes it glare.
+  - Selectable stars (≤ 50 ly) get a minimum size and opacity of 0.7, so faint red dwarfs stay visible and clickable.
+  - Background stars have no minimum, so the sky looks like the real one.
+- **Colour** comes from temperature: a Planck spectrum integrated against the CIE 1931 colour-matching functions, then converted to sRGB. The results match standard blackbody star-colour tables: 3,000 K → #ffb46b, 5,800 K → #fff4ea.
+- **Backdrop:** the 8,687 naked-eye stars at their true 3D positions, plus a faint procedural Milky Way band along the galactic plane, with its bulge toward the galactic centre.
+- **Grid:** distance rings every 10 ly around the Sun, with longitude spokes and labels. The grid fades as the camera nears the galactic plane, where the rings would otherwise collapse into one bright line.
+- **Depth lines** run from each star to the plane, blue above and amber below. They fade beyond a radius around the camera's focus that grows as you zoom out.
+- **Markers:** the ship is a diamond, the selection is pulsing brackets and hover is a ring. A dashed route line runs from the ship to the selected star.
+
+### Interaction
+- **Picking** is done in screen space against every star's projected position, within 14 px or the drawn radius. Clicking any member star selects its whole system.
+- **Hover** shows a ring and a label with the distance from the ship.
+- **Labels:** up to about 40 per frame, ranked by apparent brightness. Real names are weighted 8× over bare catalogue numbers. A greedy pass avoids overlaps and keeps labels clear of the UI panels. Selected, hovered and ship labels always show, and start outside their marker.
+- **Camera:** OrbitControls with damping, plus an eased glide to a star on double-click, `F`, search or `?select=`. `H` returns to the overview, and any drag cancels a glide.
+
+### UI
+- **Clocks:** ship time (year, day, generation) and the Earth calendar year with the ship's location. Both are static until Phase 2.
+- **Search** matches names, Bayer and Flamsteed names, IAU names, and Gliese, HD and HIP numbers. It ignores case, accents and superscripts, and supports arrow keys and Enter.
+- **Star panel:**
+  - system type, name and designations
+  - distance from Sol and from the ship
+  - member stars, each with a colour swatch, spectral type, plain-language type, temperature and luminosity (`~` marks estimates)
+  - confirmed planets with measured radius (transits only), mass (`≥` for minimum masses), orbit, discovery method and year, and the Archive's "disputed" flag
+  - a travel estimate with a 0.50–0.99c slider, showing Earth time, arrival year, ship time and γ
+- **Footer:** control hints, layer toggles (Grid, Depth lines, Labels, Home) and data credits.
+- **Phone layout** (≤ 720 px): the panel becomes a bottom sheet, the clocks move to the bottom, and hints and credits are hidden.
+
+### Verification
+- `npm test`: 14 passing tests.
+  - Relativity: γ, Earth and ship time, and ship time always less than Earth time.
+  - Catalogue: search by common, Bayer, IAU and catalogue names; system grouping; distances; planets attached to systems.
+  - Star colours: red, near-white and blue-white ends, and monotonic with temperature.
+- **Headless Chrome smoke test** (Puppeteer, run from outside the repo), with no console errors:
+  - Clicking Sirius on the canvas selected it and showed 8.60 ly, 10.8 Earth-years and 6.5 ship-years at 0.8c.
+  - Searching "tau ceti" and pressing Enter selected and centred it.
+  - Moving the slider to 0.99c gave γ = 7.09 and 1.7 ship-years.
+  - Also checked: an Alpha Centauri close-up, TRAPPIST-1 with its 7 planets, layer toggles with Home, and the phone layout.
+- **Rendering bug found and fixed:** TRAPPIST-1 looked invisible. Pixel sampling showed it did render; the selected-star label started inside the brackets and covered it.
+
+---
 
 ## Data
 
@@ -226,11 +276,11 @@ The end screen summarises the journey: stars visited, discoveries, and years ela
 
 ## Phases
 
-1. **Data and starmap**
+1. **Data and starmap** ✓
    - ✓ Fetch and build scripts, plus the verify script.
-   - 3D starmap with selection, a distance + travel-estimate panel, and search. *(next)*
-   - Smoke-tested in headless Chrome.
-2. **Voyage**
+   - ✓ 3D starmap with selection, a distance + travel-estimate panel, and search.
+   - ✓ Smoke-tested in headless Chrome.
+2. **Voyage** *(next)*
    - Relativistic travel and resources, both clocks, system view, scanning, Captain's Log and codex.
 3. **Story and finish**
    - Earth messages, points of interest, transit effects, Tone.js ambient drones, localStorage save/continue, end screen.
@@ -254,4 +304,5 @@ Each phase ends with instructions on how to run it and what to test.
 
 - **Network access:** confirmed working for both data sources. The game itself never needs the network, because the generated JSON is committed.
 - **Gliese 86 B**, the white dwarf companion, is not in HYG. The Gliese 86 point of interest will need it added by hand in Phase 3.
-- **Nothing is committed to git yet.**
+- **Not committed:** the five data-pipeline commits are on `main`; the starmap work (`src/`, `tests/`, `index.html`, `vite.config.js`, `README.md`, the `package.json` test-script fix) is not.
+- **Bundle size:** about 590 kB JS (150 kB gzipped), almost all three.js. This is fine for now; code-splitting can wait until Phase 3 adds Tone.js, which will be lazy-loaded.
